@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<!-- saved from url=(0139)http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb# -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+
+    <title>Image Classification with DIGITS - Training a model</title>
+    <link rel="shortcut icon" type="image/x-icon" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/static/base/images/favicon.ico?v=97c6417ed01bdc0ae3ef32ae4894fd03">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="./Image Classification with DIGITS - Training a model_files/jquery-ui.min.css" type="text/css">
+    <link rel="stylesheet" href="./Image Classification with DIGITS - Training a model_files/jquery.typeahead.min.css" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+
+
+<script type="text/javascript" src="./Image Classification with DIGITS - Training a model_files/MathJax.js.download" charset="utf-8"></script>
+
+<script type="text/javascript">
+// MathJax disabled, set as null to distingish from *missing* MathJax,
+// where it will be undefined, and should prompt a dialog later.
+window.mathjax_url = "/3cszFtK4/static/components/MathJax/MathJax.js";
+</script>
+
+<link rel="stylesheet" href="./Image Classification with DIGITS - Training a model_files/bootstrap-tour.min.css" type="text/css">
+<link rel="stylesheet" href="./Image Classification with DIGITS - Training a model_files/codemirror.css">
+
+
+    <link rel="stylesheet" href="./Image Classification with DIGITS - Training a model_files/style.min.css" type="text/css">
+    
+
+<link rel="stylesheet" href="./Image Classification with DIGITS - Training a model_files/override.css" type="text/css">
+<link rel="stylesheet" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb" id="kernel-css" type="text/css">
+
+
+    <link rel="stylesheet" href="./Image Classification with DIGITS - Training a model_files/custom.css" type="text/css">
+    <script src="./Image Classification with DIGITS - Training a model_files/promise.min.js.download" type="text/javascript" charset="utf-8"></script>
+    <script src="./Image Classification with DIGITS - Training a model_files/index.js.download" type="text/javascript"></script>
+    <script src="./Image Classification with DIGITS - Training a model_files/index.js(1).download" type="text/javascript"></script>
+    <script src="./Image Classification with DIGITS - Training a model_files/index.js(2).download" type="text/javascript"></script>
+    <script src="./Image Classification with DIGITS - Training a model_files/require.js.download" type="text/javascript" charset="utf-8"></script>
+    <script>
+      require.config({
+          
+          urlArgs: "v=20171002212348",
+          
+          baseUrl: '/3cszFtK4/static/',
+          paths: {
+            'auth/js/main': 'auth/js/main.min',
+            custom : '/3cszFtK4/custom',
+            nbextensions : '/3cszFtK4/nbextensions',
+            kernelspecs : '/3cszFtK4/kernelspecs',
+            underscore : 'components/underscore/underscore-min',
+            backbone : 'components/backbone/backbone-min',
+            jquery: 'components/jquery/jquery.min',
+            bootstrap: 'components/bootstrap/js/bootstrap.min',
+            bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
+            'jquery-ui': 'components/jquery-ui/ui/minified/jquery-ui.min',
+            moment: 'components/moment/moment',
+            codemirror: 'components/codemirror',
+            termjs: 'components/xterm.js/dist/xterm',
+            typeahead: 'components/jquery-typeahead/dist/jquery.typeahead.min',
+          },
+          map: { // for backward compatibility
+              "*": {
+                  "jqueryui": "jquery-ui",
+              }
+          },
+          shim: {
+            typeahead: {
+              deps: ["jquery"],
+              exports: "typeahead"
+            },
+            underscore: {
+              exports: '_'
+            },
+            backbone: {
+              deps: ["underscore", "jquery"],
+              exports: "Backbone"
+            },
+            bootstrap: {
+              deps: ["jquery"],
+              exports: "bootstrap"
+            },
+            bootstraptour: {
+              deps: ["bootstrap"],
+              exports: "Tour"
+            },
+            "jquery-ui": {
+              deps: ["jquery"],
+              exports: "$"
+            }
+          },
+          waitSeconds: 30,
+      });
+
+      require.config({
+          map: {
+              '*':{
+                'contents': 'services/contents',
+              }
+          }
+      });
+
+      // error-catching custom.js shim.
+      define("custom", function (require, exports, module) {
+          try {
+              var custom = require('custom/custom');
+              console.debug('loaded custom.js');
+              return custom;
+          } catch (e) {
+              console.error("error loading custom.js", e);
+              return {};
+          }
+      })
+    </script>
+
+    
+    
+
+<script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="services/contents" src="./Image Classification with DIGITS - Training a model_files/contents.js.download"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 2px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 2px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: 1em}
+.MathJax_MenuRadioCheck.RTL {right: 1em; left: auto}
+.MathJax_MenuLabel {padding: 2px 2em 4px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #CCCCCC; margin: 4px 1px 0px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: Highlight; color: HighlightText}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="custom/custom" src="./Image Classification with DIGITS - Training a model_files/custom.js.download"></script><style type="text/css">div.MathJax_MathML {text-align: center; margin: .75em 0px; display: block!important}
+.MathJax_MathML {font-style: normal; font-weight: normal; line-height: normal; font-size: 100%; font-size-adjust: none; text-indent: 0; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0; min-height: 0; border: 0; padding: 0; margin: 0}
+span.MathJax_MathML {display: inline!important}
+.MathJax_mmlExBox {display: block!important; overflow: hidden; height: 1px; width: 60ex; min-height: 0; max-height: none; padding: 0; border: 0; margin: 0}
+[class="MJX-tex-oldstyle"] {font-family: MathJax_Caligraphic, MathJax_Caligraphic-WEB}
+[class="MJX-tex-oldstyle-bold"] {font-family: MathJax_Caligraphic, MathJax_Caligraphic-WEB; font-weight: bold}
+[class="MJX-tex-caligraphic"] {font-family: MathJax_Caligraphic, MathJax_Caligraphic-WEB}
+[class="MJX-tex-caligraphic-bold"] {font-family: MathJax_Caligraphic, MathJax_Caligraphic-WEB; font-weight: bold}
+@font-face /*1*/ {font-family: MathJax_Caligraphic-WEB; src: url('http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/static/components/MathJax/fonts/HTML-CSS/TeX/otf/MathJax_Caligraphic-Regular.otf')}
+@font-face /*2*/ {font-family: MathJax_Caligraphic-WEB; font-weight: bold; src: url('http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/static/components/MathJax/fonts/HTML-CSS/TeX/otf/MathJax_Caligraphic-Bold.otf')}
+[mathvariant="double-struck"] {font-family: MathJax_AMS, MathJax_AMS-WEB}
+[mathvariant="script"] {font-family: MathJax_Script, MathJax_Script-WEB}
+[mathvariant="fraktur"] {font-family: MathJax_Fraktur, MathJax_Fraktur-WEB}
+[mathvariant="bold-script"] {font-family: MathJax_Script, MathJax_Caligraphic-WEB; font-weight: bold}
+[mathvariant="bold-fraktur"] {font-family: MathJax_Fraktur, MathJax_Fraktur-WEB; font-weight: bold}
+[mathvariant="monospace"] {font-family: monospace}
+[mathvariant="sans-serif"] {font-family: sans-serif}
+[mathvariant="bold-sans-serif"] {font-family: sans-serif; font-weight: bold}
+[mathvariant="sans-serif-italic"] {font-family: sans-serif; font-style: italic}
+[mathvariant="sans-serif-bold-italic"] {font-family: sans-serif; font-style: italic; font-weight: bold}
+@font-face /*3*/ {font-family: MathJax_AMS-WEB; src: url('http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/static/components/MathJax/fonts/HTML-CSS/TeX/otf/MathJax_AMS-Regular.otf')}
+@font-face /*4*/ {font-family: MathJax_Script-WEB; src: url('http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/static/components/MathJax/fonts/HTML-CSS/TeX/otf/MathJax_Script-Regular.otf')}
+@font-face /*5*/ {font-family: MathJax_Fraktur-WEB; src: url('http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/static/components/MathJax/fonts/HTML-CSS/TeX/otf/MathJax_Fraktur-Regular.otf')}
+@font-face /*6*/ {font-family: MathJax_Fraktur-WEB; font-weight: bold; src: url('http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/static/components/MathJax/fonts/HTML-CSS/TeX/otf/MathJax_Fraktur-Bold.otf')}
+</style><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="nbextensions/widgets/notebook/js/extension" src="./Image Classification with DIGITS - Training a model_files/extension.js.download"></script><style type="text/css">.MathJax_Display {text-align: center; margin: 0; position: relative; display: block!important; text-indent: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; width: 100%}
+.MathJax .merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MathJax .MJX-monospace {font-family: monospace}
+.MathJax .MJX-sans-serif {font-family: sans-serif}
+#MathJax_Tooltip {background-color: InfoBackground; color: InfoText; border: 1px solid black; box-shadow: 2px 2px 5px #AAAAAA; -webkit-box-shadow: 2px 2px 5px #AAAAAA; -moz-box-shadow: 2px 2px 5px #AAAAAA; -khtml-box-shadow: 2px 2px 5px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true'); padding: 3px 4px; z-index: 401; position: absolute; left: 0; top: 0; width: auto; height: auto; display: none}
+.MathJax {display: inline; font-style: normal; font-weight: normal; line-height: normal; font-size: 100%; font-size-adjust: none; text-indent: 0; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0; min-height: 0; border: 0; padding: 0; margin: 0}
+.MathJax:focus, body :focus .MathJax {display: inline-table}
+.MathJax img, .MathJax nobr, .MathJax a {border: 0; padding: 0; margin: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; vertical-align: 0; line-height: normal; text-decoration: none}
+img.MathJax_strut {border: 0!important; padding: 0!important; margin: 0!important; vertical-align: 0!important}
+.MathJax span {display: inline; position: static; border: 0; padding: 0; margin: 0; vertical-align: 0; line-height: normal; text-decoration: none}
+.MathJax nobr {white-space: nowrap!important}
+.MathJax img {display: inline!important; float: none!important}
+.MathJax * {transition: none; -webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none}
+.MathJax_Processing {visibility: hidden; position: fixed; width: 0; height: 0; overflow: hidden}
+.MathJax_Processed {display: none!important}
+.MathJax_ExBox {display: block!important; overflow: hidden; width: 1px; height: 60ex; min-height: 0; max-height: none}
+.MathJax .MathJax_EmBox {display: block!important; overflow: hidden; width: 1px; height: 60em; min-height: 0; max-height: none}
+.MathJax .MathJax_HitBox {cursor: text; background: white; opacity: 0; filter: alpha(opacity=0)}
+.MathJax .MathJax_HitBox * {filter: none; opacity: 1; background: transparent}
+#MathJax_Tooltip * {filter: none; opacity: 1; background: transparent}
+@font-face {font-family: MathJax_Blank; src: url('about:blank')}
+.MathJax .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style><link id="favicon" type="image/x-icon" rel="shortcut icon" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/static/base/images/favicon.ico"></head>
+
+<body class="notebook_app  ctb_global_show command_mode" data-base-url="/3cszFtK4/" data-ws-url="" data-notebook-name="Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb" data-notebook-path="Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb" dir="ltr" style=""><div style="visibility: hidden; overflow: hidden; position: absolute; top: 0px; height: 1px; width: auto; padding: 0px; border: 0px; margin: 0px; text-align: left; text-indent: 0px; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal;"><div id="MathJax_Hidden"></div></div><div id="MathJax_Message" style="display: none;"></div>
+
+<noscript>
+    &lt;div id='noscript'&gt;
+      Jupyter Notebook requires JavaScript.&lt;br&gt;
+      Please enable it to proceed.
+  &lt;/div&gt;
+</noscript>
+
+<div id="header" style="display: block;">
+  <div id="header-container" class="container">
+  <div id="ipython_notebook" class="nav navbar-brand pull-left"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/tree" title="dashboard"><img src="./Image Classification with DIGITS - Training a model_files/logo.png" alt="Jupyter Notebook"></a></div>
+
+  
+  
+  
+
+    <span id="login_widget">
+      
+    </span>
+
+  
+
+  
+
+  
+
+
+<span id="save_widget" class="pull-left save_widget">
+    <span id="notebook_name" class="filename">Image Classification with DIGITS - Training a model</span>
+    <span class="checkpoint_status" title="no checkpoint"></span>
+    <span class="autosave_status">(autosaved)</span>
+</span>
+
+<span id="kernel_logo_widget">
+  
+  <img class="current_kernel_logo" src="./Image Classification with DIGITS - Training a model_files/logo-64x64.png" title="Python 2" style="display: inline;">
+  
+</span>
+
+
+  </div>
+  <div class="header-bar"></div>
+
+  
+<div id="menubar-container" class="container">
+<div id="menubar">
+    <div id="menus" class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+            <button type="button" class="btn btn-default navbar-btn navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <i class="fa fa-bars"></i>
+              <span class="navbar-text">Menu</span>
+            </button>
+            <p id="kernel_indicator" class="navbar-text indicator_area">
+              <span class="kernel_indicator_name">Python 2</span>
+              <i id="kernel_indicator_icon" class="kernel_disconnected_icon" title="No Connection to Kernel"></i>
+            </p>
+            <i id="readonly-indicator" class="navbar-text" title="This notebook is read-only" style="display: none;">
+                <span class="fa-stack">
+                    <i class="fa fa-save fa-stack-1x"></i>
+                    <i class="fa fa-ban fa-stack-2x text-danger"></i>
+                </span>
+            </i>
+            <i id="modal_indicator" class="navbar-text modal_indicator" title="Command Mode"></i>
+            <span id="notification_area"><div id="notification_kernel" class="notification_widget btn btn-xs navbar-btn undefined danger" style="display: inline-block;"><span title="click to reconnect">Not Connected</span></div><div id="notification_notebook" class="notification_widget btn btn-xs navbar-btn" style="display: none;"><span></span></div><div id="notification_trusted" class="notification_widget btn btn-xs navbar-btn" style="display: inline-block;"><span>Trusted</span></div></span>
+            <div class="navbar-collapse collapse">
+              <ul class="nav navbar-nav">
+                <li class="dropdown"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">File</a>
+                    <ul id="file_menu" class="dropdown-menu">
+                        <li id="new_notebook" class="dropdown-submenu">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">New Notebook</a>
+                            <ul class="dropdown-menu" id="menu-new-notebook-submenu"><li id="new-notebook-submenu-python2"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Python 2</a></li></ul>
+                        </li>
+                        <li id="open_notebook" title="Opens a new window with the Dashboard view">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Open...</a></li>
+                        <!-- <hr/> -->
+                        <li class="divider"></li>
+                        <li id="copy_notebook" title="Open a copy of this notebook&#39;s contents and start a new kernel">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Make a Copy...</a></li>
+                        <li id="rename_notebook"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Rename...</a></li>
+                        <li id="save_checkpoint"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Save and Checkpoint</a></li>
+                        <!-- <hr/> -->
+                        <li class="divider"></li>
+                        <li id="restore_checkpoint" class="dropdown-submenu"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Revert to Checkpoint</a>
+                          <ul class="dropdown-menu"><li class="disabled"><a>No checkpoints</a></li></ul>
+                        </li>
+                        <li class="divider"></li>
+                        <li id="print_preview"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Print Preview</a></li>
+                        <li class="dropdown-submenu"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Download as</a>
+                            <ul id="download_menu" class="dropdown-menu">
+                                <li id="download_ipynb"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Notebook (.ipynb)</a></li>
+                                <li id="download_script"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Python (.py)</a></li>
+                                <li id="download_html"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">HTML (.html)</a></li>
+                                <li id="download_markdown"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Markdown (.md)</a></li>
+                                <li id="download_rst"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">reST (.rst)</a></li>
+                                <li id="download_latex"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">LaTeX (.tex)</a></li>
+                                <li id="download_pdf"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">PDF via LaTeX (.pdf)</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown-submenu hidden"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Deploy as</a>
+                            <ul id="deploy_menu" class="dropdown-menu"></ul>
+                        </li>
+                        <li class="divider"></li>
+                        <li id="trust_notebook" title="Trust the output of this notebook" class="disabled">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Trusted Notebook</a></li>
+                        <li class="divider"></li>
+                        <li id="kill_and_exit" title="Shutdown this notebook&#39;s kernel, and close this window">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Close and Halt</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" class="dropdown-toggle" data-toggle="dropdown">Edit</a>
+                    <ul id="edit_menu" class="dropdown-menu">
+                        <li id="cut_cell"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Cut Cells</a></li>
+                        <li id="copy_cell"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Copy Cells</a></li>
+                        <li id="paste_cell_above" class="disabled"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Paste Cells Above</a></li>
+                        <li id="paste_cell_below" class="disabled"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Paste Cells Below</a></li>
+                        <li id="paste_cell_replace" class="disabled"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Paste Cells &amp; Replace</a></li>
+                        <li id="delete_cell"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Delete Cells</a></li>
+                        <li id="undelete_cell" class="disabled"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Undo Delete Cells</a></li>
+                        <li class="divider"></li>
+                        <li id="split_cell"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Split Cell</a></li>
+                        <li id="merge_cell_above"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Merge Cell Above</a></li>
+                        <li id="merge_cell_below"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Merge Cell Below</a></li>
+                        <li class="divider"></li>
+                        <li id="move_cell_up"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Move Cell Up</a></li>
+                        <li id="move_cell_down"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Move Cell Down</a></li>
+                        <li class="divider"></li>
+                        <li id="edit_nb_metadata"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Edit Notebook Metadata</a></li>
+                        <li class="divider"></li>
+                        <li id="find_and_replace"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#"> Find and Replace </a></li>
+                        <li class="divider"></li>
+                        <li id="cut_cell_attachments"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Cut Cell Attachments</a></li>
+                        <li id="copy_cell_attachments"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Copy Cell Attachments</a></li>
+                        <li id="paste_cell_attachments" class="disabled"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Paste Cell Attachments</a></li>
+                        <li class="divider"></li>
+                        <li id="insert_image" class="disabled"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#"> Insert Image </a></li>
+                    </ul>
+                </li>
+                <li class="dropdown"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" class="dropdown-toggle" data-toggle="dropdown">View</a>
+                    <ul id="view_menu" class="dropdown-menu">
+                        <li id="toggle_header" title="Show/Hide the logo and notebook title (above menu bar)">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Toggle Header</a>
+                        </li>
+                        <li id="toggle_toolbar" title="Show/Hide the action icons (below menu bar)">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Toggle Toolbar</a>
+                        </li>
+                        <li id="toggle_line_numbers" title="Show/Hide line numbers in cells">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Toggle Line Numbers</a>
+                        </li>
+                        <li id="menu-cell-toolbar" class="dropdown-submenu">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Cell Toolbar</a>
+                            <ul class="dropdown-menu" id="menu-cell-toolbar-submenu"><li data-name="None"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">None</a></li><li data-name="Edit%20Metadata"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Edit Metadata</a></li><li data-name="Raw%20Cell%20Format"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Raw Cell Format</a></li><li data-name="Slideshow"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Slideshow</a></li><li data-name="Attachments"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Attachments</a></li><li data-name="Tags"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Tags</a></li></ul>
+                        </li>
+                    </ul>
+                </li>
+                <li class="dropdown"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" class="dropdown-toggle" data-toggle="dropdown">Insert</a>
+                    <ul id="insert_menu" class="dropdown-menu">
+                        <li id="insert_cell_above" title="Insert an empty Code cell above the currently active cell">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Insert Cell Above</a></li>
+                        <li id="insert_cell_below" title="Insert an empty Code cell below the currently active cell">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Insert Cell Below</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" class="dropdown-toggle" data-toggle="dropdown">Cell</a>
+                    <ul id="cell_menu" class="dropdown-menu">
+                        <li id="run_cell" title="Run this cell, and move cursor to the next one">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Run Cells</a></li>
+                        <li id="run_cell_select_below" title="Run this cell, select below">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Run Cells and Select Below</a></li>
+                        <li id="run_cell_insert_below" title="Run this cell, insert below">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Run Cells and Insert Below</a></li>
+                        <li id="run_all_cells" title="Run all cells in the notebook">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Run All</a></li>
+                        <li id="run_all_cells_above" title="Run all cells above (but not including) this cell">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Run All Above</a></li>
+                        <li id="run_all_cells_below" title="Run this cell and all cells below it">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Run All Below</a></li>
+                        <li class="divider"></li>
+                        <li id="change_cell_type" class="dropdown-submenu" title="All cells in the notebook have a cell type. By default, new cells are created as &#39;Code&#39; cells">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Cell Type</a>
+                            <ul class="dropdown-menu">
+                              <li id="to_code" title="Contents will be sent to the kernel for execution, and output will display in the footer of cell">
+                                  <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Code</a></li>
+                              <li id="to_markdown" title="Contents will be rendered as HTML and serve as explanatory text">
+                                  <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Markdown</a></li>
+                              <li id="to_raw" title="Contents will pass through nbconvert unmodified">
+                                  <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Raw NBConvert</a></li>
+                            </ul>
+                        </li>
+                        <li class="divider"></li>
+                        <li id="current_outputs" class="dropdown-submenu"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Current Outputs</a>
+                            <ul class="dropdown-menu">
+                                <li id="toggle_current_output" title="Hide/Show the output of the current cell">
+                                    <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Toggle</a>
+                                </li>
+                                <li id="toggle_current_output_scroll" title="Scroll the output of the current cell">
+                                    <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Toggle Scrolling</a>
+                                </li>
+                                <li id="clear_current_output" title="Clear the output of the current cell">
+                                    <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Clear</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li id="all_outputs" class="dropdown-submenu"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">All Output</a>
+                            <ul class="dropdown-menu">
+                                <li id="toggle_all_output" title="Hide/Show the output of all cells">
+                                    <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Toggle</a>
+                                </li>
+                                <li id="toggle_all_output_scroll" title="Scroll the output of all cells">
+                                    <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Toggle Scrolling</a>
+                                </li>
+                                <li id="clear_all_output" title="Clear the output of all cells">
+                                    <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Clear</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li class="dropdown"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" class="dropdown-toggle" data-toggle="dropdown">Kernel</a>
+                    <ul id="kernel_menu" class="dropdown-menu">
+                        <li id="int_kernel" title="Send KeyboardInterrupt (CTRL-C) to the Kernel">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Interrupt</a>
+                        </li>
+                        <li id="restart_kernel" title="Restart the Kernel">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Restart</a>
+                        </li>
+                        <li id="restart_clear_output" title="Restart the Kernel and clear all output">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Restart &amp; Clear Output</a>
+                        </li>
+                        <li id="restart_run_all" title="Restart the Kernel and re-run the notebook">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Restart &amp; Run All</a>
+                        </li>
+                        <li id="reconnect_kernel" title="Reconnect to the Kernel">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Reconnect</a>
+                        </li>
+                        <li id="shutdown_kernel" title="Shutdown the Kernel">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Shutdown</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li id="menu-change-kernel" class="dropdown-submenu">
+                            <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Change kernel</a>
+                            <ul class="dropdown-menu" id="menu-change-kernel-submenu"><li id="kernel-submenu-python2"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Python 2</a></li></ul>
+                        </li>
+                    </ul>
+                </li>
+                <li class="dropdown"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" class="dropdown-toggle" data-toggle="dropdown">Help</a>
+                    <ul id="help_menu" class="dropdown-menu">
+                        
+                        <li id="notebook_tour" title="A quick tour of the notebook user interface"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">User Interface Tour</a></li>
+                        <li id="keyboard_shortcuts" title="Opens a dialog which shows all keyboard shortcuts"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Keyboard Shortcuts</a></li>
+                        <li id="edit_keyboard_shortcuts" title="Opens a dialog allowing you to edit Keyboard shortcuts"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">Edit Keyboard Shortcuts</a></li>
+                        <li class="divider"></li>
+                        
+
+                        
+                            
+                                <li><a rel="noreferrer" href="http://nbviewer.ipython.org/github/ipython/ipython/blob/3.x/examples/Notebook/Index.ipynb" target="_blank" title="Opens in a new window">
+                                
+                                    <i class="fa fa-external-link menu-icon pull-right"></i>
+                                
+
+                                Notebook Help
+                                </a></li>
+                            
+                                <li><a rel="noreferrer" href="https://help.github.com/articles/markdown-basics/" target="_blank" title="Opens in a new window">
+                                
+                                    <i class="fa fa-external-link menu-icon pull-right"></i>
+                                
+
+                                Markdown
+                                </a></li>
+                            
+                            
+                        
+                        <li id="kernel-help-links" class="divider"></li><li><a target="_blank" title="Opens in a new window" href="http://docs.python.org/2.7?v=20171002212348"><i class="fa fa-external-link menu-icon pull-right"></i><span>Python</span></a></li><li><a target="_blank" title="Opens in a new window" href="http://ipython.org/documentation.html?v=20171002212348"><i class="fa fa-external-link menu-icon pull-right"></i><span>IPython</span></a></li><li><a target="_blank" title="Opens in a new window" href="http://docs.scipy.org/doc/numpy/reference/?v=20171002212348"><i class="fa fa-external-link menu-icon pull-right"></i><span>NumPy</span></a></li><li><a target="_blank" title="Opens in a new window" href="http://docs.scipy.org/doc/scipy/reference/?v=20171002212348"><i class="fa fa-external-link menu-icon pull-right"></i><span>SciPy</span></a></li><li><a target="_blank" title="Opens in a new window" href="http://matplotlib.org/contents.html?v=20171002212348"><i class="fa fa-external-link menu-icon pull-right"></i><span>Matplotlib</span></a></li><li><a target="_blank" title="Opens in a new window" href="http://docs.sympy.org/latest/index.html?v=20171002212348"><i class="fa fa-external-link menu-icon pull-right"></i><span>SymPy</span></a></li><li><a target="_blank" title="Opens in a new window" href="http://pandas.pydata.org/pandas-docs/stable/?v=20171002212348"><i class="fa fa-external-link menu-icon pull-right"></i><span>pandas</span></a></li><li class="divider"></li>
+                        <li title="About Jupyter Notebook"><a id="notebook_about" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#">About</a></li>
+                        
+                    </ul>
+                </li>
+              </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="maintoolbar" class="navbar">
+  <div class="toolbar-inner navbar-inner navbar-nobg">
+    <div id="maintoolbar-container" class="container toolbar"><div class="btn-group" id="save-notbook"><button class="btn btn-default" title="Save and Checkpoint" data-jupyter-action="jupyter-notebook:save-notebook"><i class="fa-save fa"></i></button></div><div class="btn-group" id="insert_above_below"><button class="btn btn-default" title="insert cell below" data-jupyter-action="jupyter-notebook:insert-cell-below"><i class="fa-plus fa"></i></button></div><div class="btn-group" id="cut_copy_paste"><button class="btn btn-default" title="cut selected cells" data-jupyter-action="jupyter-notebook:cut-cell"><i class="fa-cut fa"></i></button><button class="btn btn-default" title="copy selected cells" data-jupyter-action="jupyter-notebook:copy-cell"><i class="fa-copy fa"></i></button><button class="btn btn-default" title="paste cells below" data-jupyter-action="jupyter-notebook:paste-cell-below"><i class="fa-paste fa"></i></button></div><div class="btn-group" id="move_up_down"><button class="btn btn-default" title="move selected cells up" data-jupyter-action="jupyter-notebook:move-cell-up"><i class="fa-arrow-up fa"></i></button><button class="btn btn-default" title="move selected cells down" data-jupyter-action="jupyter-notebook:move-cell-down"><i class="fa-arrow-down fa"></i></button></div><div class="btn-group" id="run_int"><button class="btn btn-default" title="run cell, select below" data-jupyter-action="jupyter-notebook:run-cell-and-select-next"><i class="fa-step-forward fa"></i></button><button class="btn btn-default" title="interrupt kernel" data-jupyter-action="jupyter-notebook:interrupt-kernel"><i class="fa-stop fa"></i></button><button class="btn btn-default" title="restart the kernel (with dialog)" data-jupyter-action="jupyter-notebook:confirm-restart-kernel"><i class="fa-repeat fa"></i></button></div><select id="cell_type" class="form-control select-xs"><option value="code">Code</option><option value="markdown">Markdown</option><option value="raw">Raw NBConvert</option><option value="heading">Heading</option><option value="multiselect" disabled="disabled" style="display: none;">-</option></select><div class="btn-group"><button class="btn btn-default" title="open the command palette" data-jupyter-action="jupyter-notebook:show-command-palette"><i class="fa-keyboard-o fa"></i></button></div></div>
+  </div>
+</div>
+</div>
+
+<div class="lower-header-bar"></div>
+
+</div>
+
+<div id="site" style="height: 482px; display: block;">
+
+
+<div id="ipython-main-app">
+    <div id="notebook_panel">
+        <div id="notebook" tabindex="-1"><div class="container" id="notebook-container"><div class="cell text_cell rendered unselected" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 45px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 17px;">&nbsp;</div></div><div class="CodeMirror-code"><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">a</span> <span class="cm-attribute">href</span>=<span class="cm-string">"</span><span class="cm-string cm-link">https://www.nvidia.com/en-us/deep-learning-ai/education/</span><span class="cm-string">"</span><span class="cm-tag cm-bracket">&gt;</span> <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">img</span> <span class="cm-attribute">src</span>=<span class="cm-string">"files/DLI Header.png"</span> <span class="cm-attribute">alt</span>=<span class="cm-string">"Header"</span> <span class="cm-attribute">style</span>=<span class="cm-string">"width: 400px;"</span><span class="cm-tag cm-bracket">/&gt;</span> <span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">a</span><span class="cm-tag cm-bracket">&gt;</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 45px;"></div><div class="CodeMirror-gutters" style="display: none; height: 58px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><p><a href="https://www.nvidia.com/en-us/deep-learning-ai/education/" target="_blank"> <img src="./Image Classification with DIGITS - Training a model_files/DLI Header.png" alt="Header" style="width: 400px"> </a></p>
+</div></div></div><div class="cell text_cell unselected rendered" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 49px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 21px;">&nbsp;</div></div><div class="CodeMirror-code"><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-1"># Image Classification with DIGITS</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="cm-comment">An introduction to Deep Learning</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 49px;"></div><div class="CodeMirror-gutters" style="display: none; height: 62px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><h1 id="Image-Classification-with-DIGITS">Image Classification with DIGITS<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Image-Classification-with-DIGITS">¶</a></h1>
+<pre><code>                                 An introduction to Deep Learning
+</code></pre></div></div></div><div class="cell text_cell rendered unselected" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 283px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 17px;">&nbsp;</div></div><div class="CodeMirror-code" style=""><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">In this lab, you'll learn to <span class="cm-strong">**train**</span> a <span class="cm-strong">**neural network**</span> using clean <span class="cm-strong">**labeled data**</span>. We'll introduce deep learning through the task of <span class="cm-strong">**supervised image classification,**</span> where, given a large number of images and their labels, you'll build a tool that can <span class="cm-em">*predict*</span> labels of <span class="cm-em">*new*</span> images.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">The intent is to build the skills to start experimenting with deep learning. You'll examine:</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- What it means to </span><span class="cm-em cm-variable-2">*train*</span><span class="cm-variable-2"> vs. to </span><span class="cm-em cm-variable-2">*program*</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- The role of data in artificial intelligence</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- How to load data for training a neural network</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- The role of a </span><span class="cm-em cm-variable-2">*network*</span><span class="cm-variable-2"> in deep learning</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- How to train a model with data</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">At the end of this lab, you'll have a trained neural network that can successfully classify images to solve a classic deep learning challenge:<span class="cm-trailing-space-a"> </span><span class="cm-trailing-space-new-line">&nbsp;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-strong">**How can we digitize handwriting?**</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 283px;"></div><div class="CodeMirror-gutters" style="display: none; height: 296px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><p>In this lab, you'll learn to <strong>train</strong> a <strong>neural network</strong> using clean <strong>labeled data</strong>. We'll introduce deep learning through the task of <strong>supervised image classification,</strong> where, given a large number of images and their labels, you'll build a tool that can <em>predict</em> labels of <em>new</em> images.</p>
+<p>The intent is to build the skills to start experimenting with deep learning. You'll examine:</p>
+<ul>
+<li>What it means to <em>train</em> vs. to <em>program</em></li>
+<li>The role of data in artificial intelligence</li>
+<li>How to load data for training a neural network</li>
+<li>The role of a <em>network</em> in deep learning</li>
+<li>How to train a model with data</li>
+</ul>
+<p>At the end of this lab, you'll have a trained neural network that can successfully classify images to solve a classic deep learning challenge:  </p>
+<p><strong>How can we digitize handwriting?</strong></p>
+</div></div></div><div class="cell text_cell rendered unselected" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 235px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 20px;">&nbsp;</div></div><div class="CodeMirror-code" style=""><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-2">## Training vs. programming</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">The fundamental difference between artificial intellegence (AI) and traditional programing is that AI <span class="cm-em">*learns*</span> while traditional algorithms are <span class="cm-em">*programmed.*</span> Let's examine the difference through an example:</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Imagine you were asked to give a robot instructions to make a sandwich using traditional computer programming, instruction by instruction. How might you start?</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Maybe something like:<span class="cm-trailing-space-a"> </span><span class="cm-trailing-space-b">&nbsp;</span><span class="cm-trailing-space-new-line"> </span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span>Add two pieces of bread to an empty plate.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-trailing-space-a"> </span><span class="cm-trailing-space-new-line">&nbsp;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Run the code below to see what the robot might do with your first instruction. To run code, click on <span class="cm-strong">**In [ ]**</span> and press <span class="cm-strong">**Shift + Enter**</span>. </span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 235px;"></div><div class="CodeMirror-gutters" style="display: none; height: 248px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><h2 id="Training-vs.-programming">Training vs. programming<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Training-vs.-programming">¶</a></h2>
+<p>The fundamental difference between artificial intellegence (AI) and traditional programing is that AI <em>learns</em> while traditional algorithms are <em>programmed.</em> Let's examine the difference through an example:</p>
+<p>Imagine you were asked to give a robot instructions to make a sandwich using traditional computer programming, instruction by instruction. How might you start?</p>
+<p>Maybe something like:<br><code>Add two pieces of bread to an empty plate.</code>  </p>
+<p>Run the code below to see what the robot might do with your first instruction. To run code, click on <strong>In [ ]</strong> and press <strong>Shift + Enter</strong>. </p>
+</div></div></div><div class="cell code_cell rendered unselected" tabindex="2"><div class="input"><div class="prompt input_prompt"><bdi>In</bdi>&nbsp;[2]:</div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-ipython"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; min-width: 256.938px; margin-bottom: -17px; border-right-width: 13px; min-height: 28px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors" style="visibility: hidden;"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 17px;">&nbsp;</div></div><div class="CodeMirror-code"><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable">readyPlate</span> = <span class="cm-number">2</span><span class="cm-operator">*</span><span class="cm-variable">bread</span> <span class="cm-operator">+</span> <span class="cm-variable">emptyPlate</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 28px;"></div><div class="CodeMirror-gutters" style="display: none; height: 41px;"></div></div></div></div></div></div><div class="output_wrapper"><div class="out_prompt_overlay prompt" title="click to scroll output; double click to hide" style=""></div><div class="output" style=""><div class="output_area"><div class="prompt"></div><div class="output_subarea output_text output_error"><pre>
+<span class="ansi-red-fg">NameError</span>Traceback (most recent call last)
+<span class="ansi-green-fg">&lt;ipython-input-2-46fbeadc190d&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-fg">()</span>
+<span class="ansi-green-fg">----&gt; 1</span><span class="ansi-red-fg"> </span>readyPlate <span class="ansi-blue-fg">=</span> <span class="ansi-cyan-fg">2</span><span class="ansi-blue-fg">*</span>bread <span class="ansi-blue-fg">+</span> emptyPlate
+
+<span class="ansi-red-fg">NameError</span>: name 'bread' is not defined
+
+</pre></div></div></div><div class="btn btn-default output_collapsed" title="click to expand output" style="display: none;">. . .</div></div></div><div class="cell text_cell rendered unselected" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 96px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 17px;">&nbsp;</div></div><div class="CodeMirror-code"><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">You likely got a "NameError." How would you then work to define "bread" to your robot? Not to mention other ingredients and how to combine them?</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Computers only "see" images as the amount of red, blue, and green at each pixel. Everything else we want them to know, we would have had to describe in terms of pixels.</span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 96px;"></div><div class="CodeMirror-gutters" style="display: none; height: 109px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><p>You likely got a "NameError." How would you then work to define "bread" to your robot? Not to mention other ingredients and how to combine them?</p>
+<p>Computers only "see" images as the amount of red, blue, and green at each pixel. Everything else we want them to know, we would have had to describe in terms of pixels.</p>
+</div></div></div><div class="cell text_cell rendered unselected" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 454px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 17px;">&nbsp;</div></div><div class="CodeMirror-code" style=""><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Artificial intellegence takes a different approach. Instead of providing instructions, we provide examples. Above, we could <span class="cm-em">*show*</span> our robot thousands of labeled images of bread and thousands of labeled images of other objects and ask our robot to learn the difference. Our robot could then build its own program to identify new groups of pixels (images) as bread. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-image cm-image-marker">!</span><span class="cm-image cm-image-alt-text cm-link">[]</span><span class="cm-string cm-url">(bread.png)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Instead of instructions, we now need data and computers designed to learn.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-3">### The Big Bang in Machine Learning</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- </span><span class="cm-strong cm-variable-2">**Data:**</span><span class="cm-variable-2"> In the era of big data, we create ~2.5 quintillion bytes of data per day. Free datasets are available from places like </span><span class="cm-link cm-variable-2">[Kaggle.com]</span><span class="cm-string cm-url cm-variable-2">(https://www.kaggle.com/datasets)</span><span class="cm-variable-2"> and </span><span class="cm-link cm-variable-2">[UCI]</span><span class="cm-string cm-url cm-variable-2">(https://archive.ics.uci.edu/ml/datasets.html)</span><span class="cm-variable-2">. Crowdsourced datasets are built through creative approaches - e.g. Facebook asking users to "tag" friends in their photos to create labeled facial recognition datasets. More complex datasets are generated manually by experts - e.g. asking radiologists to label specific parts of the heart.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- </span><span class="cm-strong cm-variable-2">**Computers designed to learn - software:**</span><span class="cm-variable-2"> Artificial neural networks are inspired by the human brain. Like their biological counterparts, they are structured to understand (and represent) complex concepts, but their biggest strength is their ability to learn from data and feedback. The "deep" in deep learning refers to many layers of artificial neurons, each of which contribute to the network's performance.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- </span><span class="cm-strong cm-variable-2">**Computers designed to learn - hardware:**</span><span class="cm-variable-2"> The computing that powers deep learning is intensive, but not complex. Processing huge datasets through deep networks is made possible by parallel processing, a task tailor made for the GPU.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">So how do we expose artificial neural networks to data?</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">By the end of this lab, you'll know how to load data into a deep neural network to create a trained model that is capable of solving problems with what it learned, not what a programmer told it to do.</span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 454px;"></div><div class="CodeMirror-gutters" style="display: none; height: 467px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><p>Artificial intellegence takes a different approach. Instead of providing instructions, we provide examples. Above, we could <em>show</em> our robot thousands of labeled images of bread and thousands of labeled images of other objects and ask our robot to learn the difference. Our robot could then build its own program to identify new groups of pixels (images) as bread. </p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/bread.png" alt=""></p>
+<p>Instead of instructions, we now need data and computers designed to learn.</p>
+<h3 id="The-Big-Bang-in-Machine-Learning">The Big Bang in Machine Learning<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#The-Big-Bang-in-Machine-Learning">¶</a></h3>
+<ul>
+<li><strong>Data:</strong> In the era of big data, we create ~2.5 quintillion bytes of data per day. Free datasets are available from places like <a href="https://www.kaggle.com/datasets" target="_blank">Kaggle.com</a> and <a href="https://archive.ics.uci.edu/ml/datasets.html" target="_blank">UCI</a>. Crowdsourced datasets are built through creative approaches - e.g. Facebook asking users to "tag" friends in their photos to create labeled facial recognition datasets. More complex datasets are generated manually by experts - e.g. asking radiologists to label specific parts of the heart.</li>
+<li><strong>Computers designed to learn - software:</strong> Artificial neural networks are inspired by the human brain. Like their biological counterparts, they are structured to understand (and represent) complex concepts, but their biggest strength is their ability to learn from data and feedback. The "deep" in deep learning refers to many layers of artificial neurons, each of which contribute to the network's performance.</li>
+<li><strong>Computers designed to learn - hardware:</strong> The computing that powers deep learning is intensive, but not complex. Processing huge datasets through deep networks is made possible by parallel processing, a task tailor made for the GPU.</li>
+</ul>
+<p>So how do we expose artificial neural networks to data?</p>
+<p>By the end of this lab, you'll know how to load data into a deep neural network to create a trained model that is capable of solving problems with what it learned, not what a programmer told it to do.</p>
+</div></div></div><div class="cell text_cell rendered selected" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 3101px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 20px;">&nbsp;</div></div><div class="CodeMirror-code" style=""><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-2">## Training a network to recognize handwritten digits</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Since a computer "sees" images as collections of pixel values, it can't do anything with visual data unless it learns what those pixels represent. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">What if we could easily convert handwritten digits to the digital numbers they represent? </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">1. We could help the post office sort piles of mail by post code. This is the problem that motivated </span><span class="cm-link cm-variable-2">[Yann LeCun]</span><span class="cm-string cm-url cm-variable-2">(http://yann.lecun.com/)</span><span class="cm-variable-2">. He and his team put together the dataset and neural network that we'll use today and painstakingly pioneered much of what we know now about deep learning.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">2. We could help teachers by automatically grading math homework. This the problem that motivated the team at </span><span class="cm-link cm-variable-2">[answer.ky]</span><span class="cm-string cm-url cm-variable-2">(http://answer.ky/)</span><span class="cm-variable-2">, who used Yann's work to easily solve a real world problem using a workflow like what we'll work through now.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">3. We could solve countless other challenges. What will you build?</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">We're going to train a deep neural network to recognize handwritten digits 0-9. This challenge is called "image classification," where our network will be able to decide which image belongs to which class, or group. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">For example:<span class="cm-trailing-space-a"> </span><span class="cm-trailing-space-new-line">&nbsp;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">The following image should belong to the class '4':</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">img</span> <span class="cm-attribute">src</span>=<span class="cm-string">"test_images/image-4-1.jpg"</span> <span class="cm-attribute">width</span>=<span class="cm-string">"64px"</span> <span class="cm-tag cm-bracket">/&gt;</span> <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">div</span> <span class="cm-attribute">style</span>=<span class="cm-string">"text-align:center;"</span><span class="cm-tag cm-bracket">&gt;&lt;/</span><span class="cm-tag">div</span><span class="cm-tag cm-bracket">&gt;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">whereas this next image should belong to the class '2':</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">img</span> <span class="cm-attribute">src</span>=<span class="cm-string">"test_images/image-2-1.jpg"</span> <span class="cm-attribute">width</span>=<span class="cm-string">"64px"</span> <span class="cm-tag cm-bracket">/&gt;</span> <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">div</span> <span class="cm-attribute">style</span>=<span class="cm-string">"text-align:center;"</span><span class="cm-tag cm-bracket">&gt;&lt;/</span><span class="cm-tag">div</span><span class="cm-tag cm-bracket">&gt;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">It's important to note that this workflow is common to most image classification tasks, and is a great entry point to learning how to solve problems with Deep Learning.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Let's start.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-3">### Load and organize data</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Let's start by bringing our data, in this case, thousands of images, into our learning environment. We're going to use a tool called DIGITS, where we can visualize and manage our data. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">First, open DIGITS in a new tab using the following link.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-3">### </span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">a</span> <span class="cm-attribute">href</span>=<span class="cm-string">"/digits/"</span> <span class="cm-attribute">target</span>=<span class="cm-string">\</span><span class="cm-string cm-error">"_blank\"</span><span class="cm-tag cm-bracket">&gt;</span>Open DIGITS<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">a</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-header cm-header-3">.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-4">#### Loading our first dataset</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">When you start DIGITS, you will be taken to the home screen where you can create new datasets or new models. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Begin by selecting the <span class="cm-strong">**Datasets**</span> tab on the left.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-image cm-image-marker">!</span><span class="cm-image cm-image-alt-text cm-link">[]</span><span class="cm-string cm-url">(DIGITSdatasetHome.PNG)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Since we want our network to tell us which "class" each image belongs to, we ask DIGITS to prepare a "classification" image dataset by selecting "Classification" from the "Images" menu on the right.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">At this point you may need to enter a username.  If requested, just enter any name in lower-case.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-4">#### Loading and organizing our data</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">You'll see that you've got a lot of options around <span class="cm-em">*how*</span> to load a dataset. For this first runthrough, we're going to simplify and only fill out two fields. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">1. Copy and paste the following filepath into the field "Training Images": &nbsp;</span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span>/data/train_small<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">2. Name the dataset so that you can find it. We've chosen: </span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span>Default Options Small Digits Dataset<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Don't see "Training Images?" Click "DIGITS" on the top left and select "Datasets" before selecting "Images" and "Classification."</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Note that we've already downloaded the dataset to the computer where DIGITS is running. You'll have a chance to explore it shortly and will learn methods for accessing data as you work through our labs. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-image cm-image-marker">!</span><span class="cm-image cm-image-alt-text cm-link">[]</span><span class="cm-string cm-url">(FirstDataSetSettings.png)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Then press "Create."</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">DIGITS is now creating your dataset from the folder. Inside the folder <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span>train_small<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span> there were 10 subfolders, one for each class (0, 1, 2, 3, ..., 9). All of the handwritten training images of '0's are in the '0' folder, '1's are in the '1' folder, etc.<span class="cm-trailing-space-a"> </span><span class="cm-trailing-space-new-line">&nbsp;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Explore what our data looks like by selecting "Explore the db".</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-4">#### Your data</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">While there is an endless amount of analysis that we could do on the data, make sure you at least note the following:</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">1. This data is </span><span class="cm-em cm-variable-2">*labeled.*</span><span class="cm-variable-2"> Each image in the datasest is paired with a </span><span class="cm-strong cm-variable-2">**label**</span><span class="cm-variable-2"> that informs the computer what number the image represents, 0-9. We're basically providing a question with its answer, or, as our network will see it, a desired output with each input. These are the "examples" that our network will learn from.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">2. Each image is simply a digit on a plain background. Image classification is the task of identifying the </span><span class="cm-em cm-variable-2">*predominant*</span><span class="cm-variable-2"> object in an image. For a first attempt, we're using images that only contain </span><span class="cm-em cm-variable-2">*one*</span><span class="cm-variable-2"> object. We'll build skills to deal with messier data in subsesquent labs. </span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">This data comes from the <span class="cm-link">[MNIST]</span><span class="cm-string cm-url">(http://yann.lecun.com/exdb/mnist/)</span> dataset which was created by Yann LeCun. It's largely considered the "Hello World," or introduction, to deep learning.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-3">### Learning from our data - Training a neural network</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Next, we're going to use our data to <span class="cm-em">*train*</span> an artificial neural network. Like its biological inspiration, the human brain, artificial neural networks are learning machines. Also like the brain, these "networks" only become capable of solving problems with experience, in this case, interacting with data. Throughout this lab, we'll refer to "networks" as untrained artificial neural networks and "models" as what networks become once they are trained (through exposure to data).</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-image cm-image-marker">!</span><span class="cm-image cm-image-alt-text cm-link">[]</span><span class="cm-string cm-url">(networktomodel.PNG)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">For image classification (and some other tasks), DIGITS comes pre-loaded with award-winning networks. As we take on different challenges in subsequent labs, we'll learn more about selecting networks and even building our own. However, to start, weighing the merits of different networks would be like arguing about the performance of different cars before driving for the first time. Building a network from scratch would be like building your own car. Let's drive first. We'll get there. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Go to the tab where DIGITS is still open and return to the main screen by clicking "DIGITS" on the top left of the screen.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Creating a new model in DIGITS is a lot like creating a new dataset. From the home screen, the "Models" tab will be pre-selected. Click "Images" under "New Model" and select "Classification", as we're creating an image classification model to match our image classification dataset and image classification task.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-image cm-image-marker">!</span><span class="cm-image cm-image-alt-text cm-link">[]</span><span class="cm-string cm-url">(newmodelselect.PNG)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Again, for this first round of training let's keep it simple. The following are the fewest settings you could possibly set to successfully train a network.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">1. We need to choose the dataset we just created. Select our </span><span class="cm-strong cm-variable-2">**Default Options Small Digits Dataset**</span><span class="cm-variable-2"> dataset.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">2. We need to tell the network how long we want it to train. An </span><span class="cm-strong cm-variable-2">**epoch**</span><span class="cm-variable-2"> is one trip through the entire training dataset. Set the number of </span><span class="cm-strong cm-variable-2">**Training Epochs**</span><span class="cm-variable-2"> to 5 to give our network enough time to learn something, but not take all day. This is a great setting to experiment with. </span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">3. We need to define which network will </span><span class="cm-em cm-variable-2">*learn*</span><span class="cm-variable-2"> from our data. Since we stuck with default settings in creating our dataset, our database is full of 256x256 color images. Select the network </span><span class="cm-strong cm-variable-2">**AlexNet**</span><span class="cm-variable-2">, if only because it expects 256x256 color images.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">4. We need to name the model, as hopefully we'll do a lot of these. We chose </span><span class="cm-strong cm-variable-2">**My first model.**</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-image cm-image-marker">!</span><span class="cm-image cm-image-alt-text cm-link">[]</span><span class="cm-string cm-url">(1stmodeltrain.png)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">When you have set all of these options, press the Create button.<span class="cm-trailing-space-a"> </span><span class="cm-trailing-space-new-line">&nbsp;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">You are now training your model! For this configuration, the model training should complete in less than 5 minutes. You can either watch it train, continue reading, or grab a cup of coffee. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">When done, the Job Status on the right will say "Done", and your training graph should look something like:</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-image cm-image-marker">!</span><span class="cm-image cm-image-alt-text cm-link">[]</span><span class="cm-string cm-url">(graphfromfirsttraining.png)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">We'll dig into this graph as a tool for improvement, but the bottom line is that after 5 minutes of training, we have built a model that can map images of handwritten digits to the number they represent with an accuracy of about 87%! </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Let's test the ability of the model to identify <span class="cm-strong">**new**</span> images.<span class="cm-trailing-space-a"> </span><span class="cm-trailing-space-new-line">&nbsp;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-3">### Inference</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Now that our neural network has learned something, <span class="cm-em">*inference*</span> is the process of making decisions based on what was learned. The power of our trained model is that it can now classify <span class="cm-strong">**unlabeled**</span> images. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-image cm-image-marker">!</span><span class="cm-image cm-image-alt-text cm-link">[]</span><span class="cm-string cm-url">(trainingwithinferencevisualization.PNG)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">We'll use DIGITS to test our trained model. At the bottom of the model window, you can test a single image or a list of images.  On the left, type in the path <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span>/data/test_small/2/img_4415.png<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span> in the Image Path text box. Select the <span class="cm-strong">**Classify One**</span> button.  After a few seconds, a new window is displayed with the image and information about its attempt to classify the image. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-image cm-image-marker">!</span><span class="cm-image cm-image-alt-text cm-link">[]</span><span class="cm-string cm-url">(classifyoneunlabeled.png)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Congratulations, you can now train a deep neural network for image classifiation! Prove it to yourself below.</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-2">## Test yourself</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">We're going to work to replicate this process with a new dataset. But first, a recap of what we've done:</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">1. We loaded a folder of labeled images into DIGITS.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">2. We chose a deep neural network that would be able to learn from these images.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">3. We let DIGITS "train" the model with our labeled images.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">The intent of this lab was to teach you to train an image classification network using DIGITS. If you made it this far, you've done that. It's important to note two things:</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">1. You can do this outside of this lab. DIGITS is available free </span><span class="cm-link cm-variable-2">[here]</span><span class="cm-string cm-url cm-variable-2">(https://developer.nvidia.com/digits)</span><span class="cm-variable-2">. (Note that if you install DIGITS and attempt to train models without a GPU, your training times will increase significantly.)</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">2. The process you just followed is not exclusive to handwritten digits.</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Let's prove it:</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Use the workflow you just learned to create a model that classifies a completely different set of images. The Caltech 101 dataset contains pictures of 101 classes of objects. Using the same process you just followed, load the dataset to DIGITS and train the AlexNet model. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">To start, we found a dataset by searching online for "classification datasets". We found one from Caltech <span class="cm-link">[here]</span><span class="cm-string cm-url">(http://www.vision.caltech.edu/Image_Datasets/Caltech101)</span>. We downloaded the data to the folder: <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span>/data/101_ObjectCategories<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 3101px;"></div><div class="CodeMirror-gutters" style="display: none; height: 3114px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><h2 id="Training-a-network-to-recognize-handwritten-digits">Training a network to recognize handwritten digits<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Training-a-network-to-recognize-handwritten-digits">¶</a></h2>
+<p>Since a computer "sees" images as collections of pixel values, it can't do anything with visual data unless it learns what those pixels represent. </p>
+<p>What if we could easily convert handwritten digits to the digital numbers they represent? </p>
+<ol>
+<li>We could help the post office sort piles of mail by post code. This is the problem that motivated <a href="http://yann.lecun.com/" target="_blank">Yann LeCun</a>. He and his team put together the dataset and neural network that we'll use today and painstakingly pioneered much of what we know now about deep learning.</li>
+<li>We could help teachers by automatically grading math homework. This the problem that motivated the team at <a href="http://answer.ky/" target="_blank">answer.ky</a>, who used Yann's work to easily solve a real world problem using a workflow like what we'll work through now.</li>
+<li>We could solve countless other challenges. What will you build?</li>
+</ol>
+<p>We're going to train a deep neural network to recognize handwritten digits 0-9. This challenge is called "image classification," where our network will be able to decide which image belongs to which class, or group. </p>
+<p>For example:<br>The following image should belong to the class '4':</p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/image-4-1.jpg" width="64px"> </p><div style="text-align: center"></div><p></p>
+<p>whereas this next image should belong to the class '2':</p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/image-2-1.jpg" width="64px"> </p><div style="text-align: center"></div><p></p>
+<p>It's important to note that this workflow is common to most image classification tasks, and is a great entry point to learning how to solve problems with Deep Learning.</p>
+<p>Let's start.</p>
+<h3 id="Load-and-organize-data">Load and organize data<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Load-and-organize-data">¶</a></h3>
+<p>Let's start by bringing our data, in this case, thousands of images, into our learning environment. We're going to use a tool called DIGITS, where we can visualize and manage our data. </p>
+<p>First, open DIGITS in a new tab using the following link.</p>
+<h3 id="Open-DIGITS."><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/digits/" target="_blank">Open DIGITS</a>.<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Open-DIGITS.">¶</a></h3>
+<h4 id="Loading-our-first-dataset">Loading our first dataset<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Loading-our-first-dataset">¶</a></h4>
+<p>When you start DIGITS, you will be taken to the home screen where you can create new datasets or new models. </p>
+<p>Begin by selecting the <strong>Datasets</strong> tab on the left.</p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/DIGITSdatasetHome.PNG" alt=""></p>
+<p>Since we want our network to tell us which "class" each image belongs to, we ask DIGITS to prepare a "classification" image dataset by selecting "Classification" from the "Images" menu on the right.</p>
+<p>At this point you may need to enter a username.  If requested, just enter any name in lower-case.</p>
+<h4 id="Loading-and-organizing-our-data">Loading and organizing our data<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Loading-and-organizing-our-data">¶</a></h4>
+<p>You'll see that you've got a lot of options around <em>how</em> to load a dataset. For this first runthrough, we're going to simplify and only fill out two fields. </p>
+<ol>
+<li>Copy and paste the following filepath into the field "Training Images":  <code>/data/train_small</code></li>
+<li>Name the dataset so that you can find it. We've chosen: <code>Default Options Small Digits Dataset</code></li>
+</ol>
+<p>Don't see "Training Images?" Click "DIGITS" on the top left and select "Datasets" before selecting "Images" and "Classification."</p>
+<p>Note that we've already downloaded the dataset to the computer where DIGITS is running. You'll have a chance to explore it shortly and will learn methods for accessing data as you work through our labs. </p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/FirstDataSetSettings.png" alt=""></p>
+<p>Then press "Create."</p>
+<p>DIGITS is now creating your dataset from the folder. Inside the folder <code>train_small</code> there were 10 subfolders, one for each class (0, 1, 2, 3, ..., 9). All of the handwritten training images of '0's are in the '0' folder, '1's are in the '1' folder, etc.  </p>
+<p>Explore what our data looks like by selecting "Explore the db".</p>
+<h4 id="Your-data">Your data<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Your-data">¶</a></h4>
+<p>While there is an endless amount of analysis that we could do on the data, make sure you at least note the following:</p>
+<ol>
+<li>This data is <em>labeled.</em> Each image in the datasest is paired with a <strong>label</strong> that informs the computer what number the image represents, 0-9. We're basically providing a question with its answer, or, as our network will see it, a desired output with each input. These are the "examples" that our network will learn from.</li>
+<li>Each image is simply a digit on a plain background. Image classification is the task of identifying the <em>predominant</em> object in an image. For a first attempt, we're using images that only contain <em>one</em> object. We'll build skills to deal with messier data in subsesquent labs. </li>
+</ol>
+<p>This data comes from the <a href="http://yann.lecun.com/exdb/mnist/" target="_blank">MNIST</a> dataset which was created by Yann LeCun. It's largely considered the "Hello World," or introduction, to deep learning.</p>
+<h3 id="Learning-from-our-data---Training-a-neural-network">Learning from our data - Training a neural network<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Learning-from-our-data---Training-a-neural-network">¶</a></h3>
+<p>Next, we're going to use our data to <em>train</em> an artificial neural network. Like its biological inspiration, the human brain, artificial neural networks are learning machines. Also like the brain, these "networks" only become capable of solving problems with experience, in this case, interacting with data. Throughout this lab, we'll refer to "networks" as untrained artificial neural networks and "models" as what networks become once they are trained (through exposure to data).</p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/networktomodel.PNG" alt=""></p>
+<p>For image classification (and some other tasks), DIGITS comes pre-loaded with award-winning networks. As we take on different challenges in subsequent labs, we'll learn more about selecting networks and even building our own. However, to start, weighing the merits of different networks would be like arguing about the performance of different cars before driving for the first time. Building a network from scratch would be like building your own car. Let's drive first. We'll get there. </p>
+<p>Go to the tab where DIGITS is still open and return to the main screen by clicking "DIGITS" on the top left of the screen.</p>
+<p>Creating a new model in DIGITS is a lot like creating a new dataset. From the home screen, the "Models" tab will be pre-selected. Click "Images" under "New Model" and select "Classification", as we're creating an image classification model to match our image classification dataset and image classification task.</p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/newmodelselect.PNG" alt=""></p>
+<p>Again, for this first round of training let's keep it simple. The following are the fewest settings you could possibly set to successfully train a network.</p>
+<ol>
+<li>We need to choose the dataset we just created. Select our <strong>Default Options Small Digits Dataset</strong> dataset.</li>
+<li>We need to tell the network how long we want it to train. An <strong>epoch</strong> is one trip through the entire training dataset. Set the number of <strong>Training Epochs</strong> to 5 to give our network enough time to learn something, but not take all day. This is a great setting to experiment with. </li>
+<li>We need to define which network will <em>learn</em> from our data. Since we stuck with default settings in creating our dataset, our database is full of 256x256 color images. Select the network <strong>AlexNet</strong>, if only because it expects 256x256 color images.</li>
+<li>We need to name the model, as hopefully we'll do a lot of these. We chose <strong>My first model.</strong></li>
+</ol>
+<p><img src="./Image Classification with DIGITS - Training a model_files/1stmodeltrain.png" alt=""></p>
+<p>When you have set all of these options, press the Create button.  </p>
+<p>You are now training your model! For this configuration, the model training should complete in less than 5 minutes. You can either watch it train, continue reading, or grab a cup of coffee. </p>
+<p>When done, the Job Status on the right will say "Done", and your training graph should look something like:</p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/graphfromfirsttraining.png" alt=""></p>
+<p>We'll dig into this graph as a tool for improvement, but the bottom line is that after 5 minutes of training, we have built a model that can map images of handwritten digits to the number they represent with an accuracy of about 87%! </p>
+<p>Let's test the ability of the model to identify <strong>new</strong> images.  </p>
+<h3 id="Inference">Inference<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Inference">¶</a></h3>
+<p>Now that our neural network has learned something, <em>inference</em> is the process of making decisions based on what was learned. The power of our trained model is that it can now classify <strong>unlabeled</strong> images. </p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/trainingwithinferencevisualization.PNG" alt=""></p>
+<p>We'll use DIGITS to test our trained model. At the bottom of the model window, you can test a single image or a list of images.  On the left, type in the path <code>/data/test_small/2/img_4415.png</code> in the Image Path text box. Select the <strong>Classify One</strong> button.  After a few seconds, a new window is displayed with the image and information about its attempt to classify the image. </p>
+<p><img src="./Image Classification with DIGITS - Training a model_files/classifyoneunlabeled.png" alt=""></p>
+<p>Congratulations, you can now train a deep neural network for image classifiation! Prove it to yourself below.</p>
+<h2 id="Test-yourself">Test yourself<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Test-yourself">¶</a></h2>
+<p>We're going to work to replicate this process with a new dataset. But first, a recap of what we've done:</p>
+<ol>
+<li>We loaded a folder of labeled images into DIGITS.</li>
+<li>We chose a deep neural network that would be able to learn from these images.</li>
+<li>We let DIGITS "train" the model with our labeled images.</li>
+</ol>
+<p>The intent of this lab was to teach you to train an image classification network using DIGITS. If you made it this far, you've done that. It's important to note two things:</p>
+<ol>
+<li>You can do this outside of this lab. DIGITS is available free <a href="https://developer.nvidia.com/digits" target="_blank">here</a>. (Note that if you install DIGITS and attempt to train models without a GPU, your training times will increase significantly.)</li>
+<li>The process you just followed is not exclusive to handwritten digits.</li>
+</ol>
+<p>Let's prove it:</p>
+<p>Use the workflow you just learned to create a model that classifies a completely different set of images. The Caltech 101 dataset contains pictures of 101 classes of objects. Using the same process you just followed, load the dataset to DIGITS and train the AlexNet model. </p>
+<p>To start, we found a dataset by searching online for "classification datasets". We found one from Caltech <a href="http://www.vision.caltech.edu/Image_Datasets/Caltech101" target="_blank">here</a>. We downloaded the data to the folder: <code>/data/101_ObjectCategories</code></p>
+</div></div></div><div class="cell text_cell rendered unselected" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 113px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 17px;">&nbsp;</div></div><div class="CodeMirror-code" style=""><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Consult the lab instructions you just followed where needed to:</span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- Explore the database - This would be a great place to find out what classes of images you're classifying. </span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- Train a model</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">- Test your model - Use the test image at </span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span>/notebooks/Dolphin2.jpg<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">code</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-variable-2"> or find an image from one of the classes to download</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 113px;"></div><div class="CodeMirror-gutters" style="display: none; height: 126px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><p>Consult the lab instructions you just followed where needed to:</p>
+<ul>
+<li>Explore the database - This would be a great place to find out what classes of images you're classifying. </li>
+<li>Train a model</li>
+<li>Test your model - Use the test image at <code>/notebooks/Dolphin2.jpg</code> or find an image from one of the classes to download</li>
+</ul>
+</div></div></div><div class="cell text_cell rendered unselected" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 164px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 17px;">&nbsp;</div></div><div class="CodeMirror-code" style=""><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">If you successfully trained the new model with no errors, you've learned what this lab intended. Likely, the accuracy of your new model was much lower. Our model needs to differentiate between 10X more classes with much more complex images. However, any more than 1% accuracy means that your model has learned <span class="cm-em">*something!*</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">In the next section, we'll start to work to improve performance. In this section, you've learned to train a deep neural network. </span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">Hopefully you're left with two feelings:<span class="cm-trailing-space-a"> </span><span class="cm-trailing-space-new-line">&nbsp;</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">1. Excitement that you're starting to solve problems with deep learning. </span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-variable-2">2. Discontent with the current performance of your model and capability of your skillset. </span></span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 164px;"></div><div class="CodeMirror-gutters" style="display: none; height: 177px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><p>If you successfully trained the new model with no errors, you've learned what this lab intended. Likely, the accuracy of your new model was much lower. Our model needs to differentiate between 10X more classes with much more complex images. However, any more than 1% accuracy means that your model has learned <em>something!</em></p>
+<p>In the next section, we'll start to work to improve performance. In this section, you've learned to train a deep neural network. </p>
+<p>Hopefully you're left with two feelings:  </p>
+<ol>
+<li>Excitement that you're starting to solve problems with deep learning. </li>
+<li>Discontent with the current performance of your model and capability of your skillset. </li>
+</ol>
+</div></div></div><div class="cell text_cell rendered unselected" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 82px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 20px;">&nbsp;</div></div><div class="CodeMirror-code"><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-header cm-header-2">## Next Steps</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;">In the next section, you'll learn what tools you have to improve performance and work with more diverse data. <span class="cm-link">[Click here to keep going!]</span><span class="cm-string cm-url">(Image%20Classification%20with%20DIGITS%20-%20Improving%20Performance.ipynb)</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 82px;"></div><div class="CodeMirror-gutters" style="display: none; height: 95px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><h2 id="Next-Steps">Next Steps<a class="anchor-link" href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#Next-Steps">¶</a></h2>
+<p>In the next section, you'll learn what tools you have to improve performance and work with more diverse data. <a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Improving%20Performance.ipynb" target="_blank">Click here to keep going!</a></p>
+</div></div></div><div class="cell text_cell unselected rendered" tabindex="2"><div class="prompt input_prompt"></div><div class="inner_cell"><div class="ctb_hideshow"><div class="celltoolbar"></div></div><div class="input_area"><div class="CodeMirror cm-s-default CodeMirror-wrap"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 5.59375px; left: 5.59375px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-vscrollbar" cm-not-content="true" style="bottom: 0px;"><div style="min-width: 1px; height: 0px;"></div></div><div class="CodeMirror-hscrollbar" cm-not-content="true"><div style="height: 100%; min-height: 1px; width: 0px;"></div></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; padding-right: 0px; padding-bottom: 0px; margin-bottom: -17px; border-right-width: 13px; min-height: 45px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"><div class="CodeMirror-cursor" style="left: 0px; top: 0px; height: 17px;">&nbsp;</div></div><div class="CodeMirror-code"><pre class=" CodeMirror-line "><span style="padding-right: 0.1px;"><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">a</span> <span class="cm-attribute">href</span>=<span class="cm-string">"</span><span class="cm-string cm-link">https://www.nvidia.com/en-us/deep-learning-ai/education/</span><span class="cm-string">"</span><span class="cm-tag cm-bracket">&gt;</span> <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">img</span> <span class="cm-attribute">src</span>=<span class="cm-string">"files/DLI Header.png"</span> <span class="cm-attribute">alt</span>=<span class="cm-string">"Header"</span> <span class="cm-attribute">style</span>=<span class="cm-string">"width: 400px;"</span><span class="cm-tag cm-bracket">/&gt;</span> <span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">a</span><span class="cm-tag cm-bracket">&gt;</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 13px; width: 1px; border-bottom: 0px solid transparent; top: 45px;"></div><div class="CodeMirror-gutters" style="display: none; height: 58px;"></div></div></div></div><div class="text_cell_render rendered_html" tabindex="-1"><p><a href="https://www.nvidia.com/en-us/deep-learning-ai/education/" target="_blank"> <img src="./Image Classification with DIGITS - Training a model_files/DLI Header.png" alt="Header" style="width: 400px"> </a></p>
+</div></div></div></div><div class="end_space"></div></div>
+        <div id="tooltip" class="ipython_tooltip" style="display:none"><div class="tooltipbuttons"><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" role="button" class="ui-button"><span class="ui-icon ui-icon-close">Close</span></a><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" class="ui-corner-all" role="button" id="expanbutton" title="Grow the tooltip vertically (press shift-tab twice)"><span class="ui-icon ui-icon-plus">Expand</span></a><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" role="button" class="ui-button" title="show the current docstring in pager (press shift-tab 4 times)"><span class="ui-icon ui-icon-arrowstop-l-n">Open in Pager</span></a><a href="http://ec2-23-20-207-60.compute-1.amazonaws.com/3cszFtK4/notebooks/Image%20Classification%20with%20DIGITS%20-%20Training%20a%20model.ipynb#" role="button" class="ui-button" title="Tooltip will linger for 10 seconds while you type" style="display: none;"><span class="ui-icon ui-icon-clock">Close</span></a></div><div class="pretooltiparrow"></div><div class="tooltiptext smalltooltip"></div></div>
+    </div>
+</div>
+
+
+
+</div>
+
+
+
+<div id="pager" class="ui-resizable">
+    <div id="pager-contents">
+        <div id="pager-container" class="container"></div>
+    </div>
+    <div id="pager-button-area"><a role="button" title="Open the pager in an external window" class="ui-button"><span class="ui-icon ui-icon-extlink"></span></a><a role="button" title="Close the pager" class="ui-button"><span class="ui-icon ui-icon-close"></span></a></div>
+<div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div></div>
+
+
+
+
+
+
+<script type="text/javascript">
+    sys_info = {"os_name": "posix", "platform": "Linux-3.13.0-46-generic-x86_64-with-Ubuntu-14.04-trusty", "default_encoding": "ANSI_X3.4-1968", "notebook_path": "/usr/local/lib/python2.7/dist-packages/notebook", "sys_platform": "linux2", "sys_version": "2.7.6 (default, Oct 26 2016, 20:30:19) \n[GCC 4.8.4]", "notebook_version": "5.0.0", "commit_source": "", "commit_hash": "", "sys_executable": "/usr/bin/python"};
+</script>
+
+<script src="./Image Classification with DIGITS - Training a model_files/encoding.js.download" charset="utf-8"></script>
+
+<script src="./Image Classification with DIGITS - Training a model_files/main.min.js.download" type="text/javascript" charset="utf-8"></script>
+
+
+
+<script type="text/javascript">
+  function _remove_token_from_url() {
+    if (window.location.search.length <= 1) {
+      return;
+    }
+    var search_parameters = window.location.search.slice(1).split('&');
+    for (var i = 0; i < search_parameters.length; i++) {
+      if (search_parameters[i].split('=')[0] === 'token') {
+        // remote token from search parameters
+        search_parameters.splice(i, 1);
+        var new_search = '';
+        if (search_parameters.length) {
+          new_search = '?' + search_parameters.join('&');
+        }
+        var new_url = window.location.origin + 
+                      window.location.pathname + 
+                      new_search + 
+                      window.location.hash;
+        window.history.replaceState({}, "", new_url);
+        return;
+      }
+    }
+  }
+  _remove_token_from_url();
+</script>
+
+
+<div style="position: absolute; width: 0px; height: 0px; overflow: hidden; padding: 0px; border: 0px; margin: 0px;"><div id="MathJax_Font_Test" style="position: absolute; visibility: hidden; top: 0px; left: 0px; width: auto; padding: 0px; border: 0px; margin: 0px; white-space: nowrap; text-align: left; text-indent: 0px; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; font-size: 40px; font-weight: normal; font-style: normal;"></div></div></body></html>
